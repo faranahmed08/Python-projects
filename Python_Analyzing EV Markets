@@ -1,0 +1,75 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df = pd.read_csv('Electric_Vehicle_Population_Data.csv')
+
+df = df.dropna()
+
+df.columns
+
+#Analyzing the EV Adoption Over Time by visualizing the number of EVs registered by model year.
+
+#model_vs_year
+sns.set_style("whitegrid")
+plt.figure(figsize=(11,3))
+
+df_count1 = sns.countplot(x=df['Model Year'], data=df, palette="Paired", hue=df['Model Year'], legend=False)
+plt.xticks(rotation=45)
+plt.tight_layout()
+
+for bars in df_count1.containers:
+    df_count1.bar_label(bars)
+
+plt.show()
+
+#Analyzing the EV Adoption Over Time by visualizing the number of EVs registered by model year.
+
+plt.figure(figsize=(13,4))
+dfyearcount = df.groupby('Model Year').size().reset_index(name='counta')
+df_barplot = sns.barplot(x='Model Year', y='counta', data=dfyearcount, hue='Model Year', legend=False, palette="viridis")
+
+for i in df_barplot.containers:
+    df_barplot.bar_label(i, fontsize=9)
+
+df_barplot
+
+#Selecting the top 3 counties based on EV registrations and then analyze the distribution of EVs within the cities of those counties.
+
+top_counties = df['County'].value_counts().head(3).index
+top_counties_cities = df[df['County'].isin(top_counties)]
+top_counties_cities_group = top_counties_cities.groupby(['County','City']).size().sort_values(ascending=False).head(10).reset_index(name='Numbers')
+cities_cplot = sns.barplot(y=top_counties_cities_group['City'], x=top_counties_cities_group['Numbers'], data=top_counties_cities_group, hue='County')
+
+#Explore the types of electric vehicles represented in this dataset.
+
+
+df_type = df.groupby('Electric Vehicle Type').size().sort_values().reset_index(name='Quantity')
+df_type
+
+df_type_bar = sns.barplot(x='Electric Vehicle Type', y='Quantity', data=df_type)
+df_type_bar
+
+df.columns
+
+# Popularity of electric vehicle manufacturers and models among the registered vehicles
+
+plt.figure(figsize=(9,4))
+df_mm = df.groupby('Make').size().sort_values(ascending=False).reset_index(name='Qty').head(10)
+
+df_mm_bar = sns.barplot(y='Make', x='Qty', data=df_mm, hue='Make', errorbar=None)
+
+df_mm_bar
+
+# Drill down into the most popular models within these top manufacturers
+
+m_top10 = df.groupby('Make').size().sort_values(ascending=False).head(3).index
+df_mtop10 = df[df['Make'].isin(m_top10)]
+df_mmtop10 = df_mtop10[['Make','Model']]
+
+plt.figure(figsize=(11,4))
+
+mm_count_group = df_mmtop10.groupby(['Make','Model']).size().sort_values(ascending=False).reset_index(name='Qty').head(10)
+mm_pie = sns.barplot(data=mm_count_group, y='Model', x='Qty', hue='Make')
+
